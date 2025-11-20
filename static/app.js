@@ -3,6 +3,14 @@ const input = document.getElementById('user-input');
 const sendBtn = document.getElementById('send-btn');
 const statusLine = document.getElementById('status-line');
 const form = document.getElementById('chat-form');
+const modelSelect = document.getElementById('model-select');
+
+const SESSION_KEY = 'dimi-session-id';
+let sessionId = localStorage.getItem(SESSION_KEY);
+if (!sessionId) {
+    sessionId = crypto.randomUUID();
+    localStorage.setItem(SESSION_KEY, sessionId);
+}
 
 function appendMessage(text, sender = 'bot') {
     const row = document.createElement('div');
@@ -26,6 +34,7 @@ function appendMessage(text, sender = 'bot') {
 
     chatArea.appendChild(row);
     chatArea.scrollTop = chatArea.scrollHeight;
+    return bubble;
 }
 
 function setStatus(text, state = 'ok') {
@@ -51,6 +60,67 @@ function showTyping() {
     return indicator;
 }
 
+function buildFeedbackControls(turnId, bubble) {
+    if (!turnId) return;
+    const bar = document.createElement('div');
+    bar.className = 'feedback-bar';
+
+    const label = document.createElement('span');
+    label.textContent = 'Rate this response:';
+    bar.appendChild(label);
+
+    const addBtn = (emoji, rating) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = emoji;
+        btn.addEventListener('click', async () => {
+            const comment = prompt('Optional feedback comment?') || '';
+            try {
+                await fetch('/feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        turn_id: turnId,
+                        session: sessionId,
+                        rating,
+                        comment,
+                    }),
+                });
+                bar.querySelectorAll('button').forEach((b) => (b.disabled = true));
+                label.textContent = 'Thanks for your feedback!';
+            } catch (err) {
+                console.error('Feedback failed', err);
+                label.textContent = 'Feedback failed — try again later';
+            }
+        });
+        bar.appendChild(btn);
+    };
+
+    addBtn('👍', 'good');
+    addBtn('👎', 'bad');
+    bubble.appendChild(bar);
+}
+
+async function streamReply(res, turnId) {
+    const decoder = new TextDecoder();
+    const reader = res.body.getReader();
+    const bubble = appendMessage('', 'bot');
+    let text = '';
+
+    while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        text += decoder.decode(value, { stream: true });
+        bubble.textContent = text;
+        chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+    text += decoder.decode();
+    bubble.textContent = text || 'No reply received.';
+    buildFeedbackControls(turnId, bubble);
+    chatArea.scrollTop = chatArea.scrollHeight;
+}
+
 async function sendMessage() {
     const text = input.value.trim();
     if (!text) return;
@@ -67,13 +137,17 @@ async function sendMessage() {
         const res = await fetch('/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: text })
+            body: JSON.stringify({
+                message: text,
+                model: modelSelect?.value || undefined,
+                session: sessionId,
+            }),
         });
 
-        if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-        const data = await res.json();
+        if (!res.ok || !res.body) throw new Error(`Request failed: ${res.status}`);
         typingIndicator.remove();
-        appendMessage(data.reply || 'No reply received.', 'bot');
+        const turnId = res.headers.get('x-turn-id');
+        await streamReply(res, turnId);
         setStatus('Connected to local workspace', 'ok');
     } catch (err) {
         typingIndicator.remove();

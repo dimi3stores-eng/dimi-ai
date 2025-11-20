@@ -46,6 +46,12 @@
                     autocomplete="off"
                     aria-label="Message input"
                 />
+                <label class="visually-hidden" for="model-select">Choose model</label>
+                <select id="model-select" aria-label="Choose model">
+                    <option value="qwen2.5">qwen2.5</option>
+                    <option value="llama3">llama3</option>
+                    <option value="mistral">mistral</option>
+                </select>
                 <button id="send-btn" type="submit" aria-label="Send message">Send</button>
             </form>
         </footer>

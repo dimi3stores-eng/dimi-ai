@@ -177,6 +177,30 @@ body.desktop {
     background: rgba(255,255,255,0.04);
 }
 
+.feedback-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    color: var(--subtext);
+}
+
+.feedback-bar button {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 4px 10px;
+}
+
+.feedback-bar button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .input-area {
     display: flex;
     gap: 12px;
