@@ -6,21 +6,50 @@
     <title>Dimi3 AI Twin</title>
     <link rel="stylesheet" href="/static/style.css" />
 </head>
+<body class="desktop">
+    <div class="window">
+        <div class="title-bar">
+            <div class="title">
+                <div class="window-icon">🪟</div>
+                <div class="title-text">
+                    <div class="name">Dimi3 AI Twin</div>
+                    <div class="caption">Personal AI companion</div>
+                </div>
+            </div>
+            <div class="window-controls" aria-hidden="true">
+                <span class="control minimize"></span>
+                <span class="control maximize"></span>
+                <span class="control close"></span>
+            </div>
+        </div>
 
-<body>
-    <div class="app-container">
-        <header class="header">
-            <div class="logo">⚡ Dimi3 AI Twin</div>
-        </header>
+        <div class="status-line" id="status-line" role="status" aria-live="polite">
+            <span class="status-dot"></span>
+            Connected to local workspace
+        </div>
 
-        <main class="chat-area" id="chat-area"></main>
+        <main
+            class="chat-area"
+            id="chat-area"
+            role="log"
+            aria-live="polite"
+            aria-label="Conversation history"
+        ></main>
 
-        <footer class="input-area">
-            <input id="user-input" type="text" placeholder="Type your message..." autocomplete="off" />
-            <button id="send-btn">Send</button>
+        <footer>
+            <form class="input-area" id="chat-form">
+                <label class="visually-hidden" for="user-input">Message</label>
+                <input
+                    id="user-input"
+                    type="text"
+                    placeholder="Type a message for your Windows twin..."
+                    autocomplete="off"
+                    aria-label="Message input"
+                />
+                <button id="send-btn" type="submit" aria-label="Send message">Send</button>
+            </form>
         </footer>
     </div>
-
     <script src="/static/app.js"></script>
 </body>
 </html>
