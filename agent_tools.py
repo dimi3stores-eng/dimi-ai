@@ -198,13 +198,18 @@ def _update_task(hand_ref: str, task_ref: str, status: Optional[str], detail: Op
 
 
 def _remove_task(hand_ref: str, task_ref: str, session_id: Optional[str]) -> str:
+    # Guard against missing identifiers so we don't crash on empty tool args.
+    if not task_ref:
+        return "Task reference is required."
+
     hands = _load_hands()
     hand = _resolve_hand(hand_ref, hands, session_id)
     if not hand:
         return "Hand not found."
 
     tasks = hand.get("tasks") or []
-    filtered = [t for t in tasks if task_ref.lower() not in {t.get("id", "").lower(), t.get("title", "").lower()}]
+    needle = task_ref.lower()
+    filtered = [t for t in tasks if needle not in {t.get("id", "").lower(), t.get("title", "").lower()}]
     if len(filtered) == len(tasks):
         return "Task not found."
 
